@@ -22,7 +22,7 @@ Genera la representación impresa (KuDE) de facturas electrónicas de Paraguay a
 | 2.2 | [`versiones/Generador_KuDE_v2.2.html`](versiones/Generador_KuDE_v2.2.html) | Correcciones de seguridad y lista con scroll, buscador y filtro (ver abajo). |
 | 2.1 | [`versiones/Generador_KuDE_v2.1.html`](versiones/Generador_KuDE_v2.1.html) | Versión inicial publicada en este repositorio. |
 
-Cada versión también tiene su etiqueta de git (`v2.1`, `v2.2`).
+Cada versión está en su propio commit del historial.
 
 ### v2.2
 
