@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-GK45n4EYK8nekW6cd7GV3yDMWNby1VpisIWimfG/F4A=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-Xi8CfpLG3YEgxQQGxWIxXCPgo3/ic0RekaoJ3efWRGE='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-iBX0Vf6to7mVfcPDzYfFHMQhgntr4+6FscDW/eYnRtg='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Generador de KuDE</title>
@@ -40,8 +40,9 @@ button:focus-visible,label:focus-within,summary:focus-visible{outline:2px solid 
 
 .layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:16px;padding:16px;align-items:start}
 @media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
-.side{display:flex;flex-direction:column;gap:12px;position:sticky;top:72px;max-height:calc(100vh - 88px);overflow:auto}
-@media (max-width:860px){.side{position:static;max-height:none}}
+.side{display:flex;flex-direction:column;gap:12px;position:sticky;top:72px;height:calc(100vh - 88px);min-height:360px}
+.side > *{flex:none}
+@media (max-width:860px){.side{position:static;height:auto;min-height:0}}
 
 .drop{border:2px dashed var(--line);border-radius:8px;background:var(--panel);padding:18px 14px;text-align:center;color:var(--muted);transition:border-color .15s,background .15s}
 .drop.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -49,14 +50,25 @@ button:focus-visible,label:focus-within,summary:focus-visible{outline:2px solid 
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
 .drop label{display:inline-block;margin-top:10px}
 
-.list{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.list-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.side > .list{flex:0 1 auto;min-height:150px}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+#list{overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-gutter:stable}
+@media (max-width:860px){#list{max-height:60vh}}
+.list-tools{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.list-tools[hidden]{display:none}
+.list-tools input{flex:1;min-width:0;font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.list-tools input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.list-tools select{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.item[hidden]{display:none}
+.item.sel{background:var(--accent-soft)}
+.list-head{flex:none;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
 .item{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 8px;padding:10px 12px;border-bottom:1px solid var(--line)}
 .item:last-child{border-bottom:0}
 .item.failed{box-shadow:inset 3px 0 0 var(--bad)}
 .item .em{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item .meta{grid-column:1;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .item .acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.item .acts .btn{padding:3px 7px;font-size:12px}
 .status{font-size:12px;color:var(--accent);font-variant-numeric:tabular-nums}
 .item details{grid-column:1/-1;font-size:12px;margin-top:4px}
 .item summary{cursor:pointer;color:var(--accent)}
@@ -64,10 +76,13 @@ button:focus-visible,label:focus-within,summary:focus-visible{outline:2px solid 
 .item li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:4px}
 .item li .y{color:var(--ok);font-weight:700} .item li .n{color:var(--bad);font-weight:700}
 .item li small{display:block;color:var(--muted)}
+.item .sig{margin:6px 0 0;color:var(--warn)}
 .chip{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;margin-top:3px}
 .chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.bad{background:var(--bad-soft);color:var(--bad)}
 .empty{padding:14px 12px;color:var(--muted);font-size:13px}
-.note{font-size:12px;color:var(--muted);padding:0 2px;margin:0}
+.note{font-size:12px;color:var(--muted);padding:0 2px;margin:6px 0 0}
+.help{font-size:12px;color:var(--muted);padding:0 2px}
+.help summary{cursor:pointer;color:var(--accent)}
 
 .sheets{display:flex;flex-direction:column;gap:18px;align-items:center;min-width:0;overflow-x:auto;padding-bottom:24px}
 .err-card{background:var(--panel);border:1px solid #f0c4c0;color:var(--bad);border-radius:8px;padding:12px 14px;width:100%;max-width:210mm}
@@ -133,7 +148,7 @@ table.k-items{width:100%;border-collapse:collapse;font-variant-numeric:tabular-n
 </head>
 <body>
 <header class="top">
-  <div class="brand"><b>Generador de KuDE <span class="ver">v2.1</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
+  <div class="brand"><b>Generador de KuDE <span class="ver">v2.2</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
   <span class="status" id="status" role="status" aria-live="polite"></span>
   <button class="btn" id="btnClear" type="button">Quitar todas</button>
   <button class="btn" id="btnPrintAll" type="button">Imprimir todas</button>
@@ -144,16 +159,22 @@ table.k-items{width:100%;border-collapse:collapse;font-variant-numeric:tabular-n
   <aside class="side">
     <div class="drop" id="drop">
       <strong>Arrastrá aquí los XML</strong>
-      Podés soltar varios a la vez (máx. 2 MB c/u).
+      Podés soltar varios a la vez (hasta 100, máx. 2 MB c/u).
       <div><label class="btn small" for="fileIn">Elegir archivos…</label></div>
       <input type="file" id="fileIn" accept=".xml,text/xml,application/xml" multiple>
     </div>
     <div class="list">
-      <div class="list-head"><span id="count">0 facturas</span></div>
+      <div class="list-head"><span id="count">0 facturas</span><span id="okcount"></span></div>
+      <div class="list-tools" id="tools" hidden>
+        <input type="search" id="filter" placeholder="Buscar proveedor, número o CDC" aria-label="Buscar facturas" autocomplete="off" maxlength="60">
+        <select id="only" aria-label="Mostrar"><option value="">Todas</option><option value="bad">Con fallas</option><option value="ok">Sin fallas</option></select>
+      </div>
       <div id="list"><div class="empty">Todavía no cargaste ningún XML.</div></div>
     </div>
-    <p class="note"><b>Descargar PDF individuales</b> genera un archivo por factura, con el nombre <i>Proveedor_número.pdf</i>. La primera vez, el navegador puede preguntar si permitís descargar varios archivos: elegí <b>Permitir</b>.</p>
-    <p class="note">Los controles comparan el CDC, el QR y los totales con el contenido del XML. No reemplazan la consulta en e-Kuatia ni verifican la firma digital.</p>
+    <details class="help"><summary>Información</summary>
+      <p class="note"><b>Descargar PDF individuales</b> genera un archivo por factura, con el nombre <i>Proveedor_número.pdf</i>. La primera vez, el navegador puede preguntar si permitís descargar varios archivos: elegí <b>Permitir</b>.</p>
+      <p class="note">Los controles comparan el CDC, el QR y los totales con el contenido del XML. No reemplazan la consulta en e-Kuatia ni verifican la firma digital.</p>
+    </details>
   </aside>
   <main class="sheets" id="sheets"></main>
 </div>
@@ -882,7 +903,7 @@ var qrcode = function() {
       for (var row = 0; row < length; row++) {
         for (var col = 0; col < length; col++) {
           context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
-          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+          context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
         }
       }
     }
@@ -2853,7 +2874,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 <script>
 "use strict";
 const MAX_BYTES = 2 * 1024 * 1024;
+const MAX_FILES = 100;                 // por carga; evita bloquear el navegador con miles de archivos
 const QR_HOST = "ekuatia.set.gov.py";
+const MAX_WORDS = 1e15;                 // tope para el monto en letras
 
 /* ---------- utilidades ---------- */
 const q  = (el, tag) => el ? el.getElementsByTagNameNS("*", tag)[0] || null : null;
@@ -2874,7 +2897,7 @@ function fmtDate(s, withTime){            // solo acepta AAAA-MM-DD[THH:MM:SS]; 
   if (!m) return esc(s);
   return `${m[3]}/${m[2]}/${m[1]}` + (withTime && m[4] ? ` ${m[4]}` : "");
 }
-const cdcGroups = c => esc(c).replace(/(.{4})/g, "$1 ").trim();
+const cdcGroups = c => /^\d{44}$/.test(c) ? c.replace(/(.{4})/g, "$1 ").trim() : esc(c);
 const hexToStr = h => /^([0-9a-f]{2})*$/i.test(h || "") ? h.replace(/../g, b => String.fromCharCode(parseInt(b, 16))) : null;
 
 /* Dígito verificador módulo 11 (algoritmo del Manual Técnico SIFEN) */
@@ -2897,6 +2920,8 @@ function g999(n){
 }
 const apoc = s => s.replace(/VEINTIUNO$/, "VEINTIÚN").replace(/UNO$/, "UN");
 function words(n){
+  if (!Number.isFinite(n) || n < 0 || n >= MAX_WORDS) throw new RangeError("monto fuera de rango");
+  n = Math.floor(n);
   if (n === 0) return "CERO";
   const mill = Math.floor(n/1e6), mil = Math.floor(n/1000) % 1000, rest = n % 1000, out = [];
   if (mill) out.push(mill === 1 ? "UN MILLÓN" : apoc(words(mill)) + " MILLONES");
@@ -2905,10 +2930,12 @@ function words(n){
   return out.join(" ");
 }
 function inWords(v, cur, curName){
-  const ent = Math.floor(v + 1e-9), cents = Math.round((v - ent) * 100);
-  const cc = ` CON ${String(cents).padStart(2,"0")}/100`;
-  if (cur === "PYG") return "GUARANÍES " + words(ent) + (cents ? cc : "");
-  return (cur === "USD" ? "DÓLARES AMERICANOS" : (curName || cur).toUpperCase()) + " " + words(ent) + cc;
+  if (!Number.isFinite(v) || Math.abs(v) >= MAX_WORDS) return "(monto fuera de rango)";
+  const neg = v < 0, c100 = Math.round(Math.abs(v) * 100);    // se redondea antes de separar: 0,999 → 1,00
+  const ent = Math.floor(c100 / 100), cents = c100 % 100;
+  const cc = ` CON ${String(cents).padStart(2,"0")}/100`, w = (neg ? "MENOS " : "") + words(ent);
+  if (cur === "PYG") return "GUARANÍES " + w + (cents ? cc : "");
+  return (cur === "USD" ? "DÓLARES AMERICANOS" : (curName || cur).toUpperCase()) + " " + w + cc;
 }
 
 /* ---------- lectura del XML ---------- */
@@ -2999,8 +3026,9 @@ function parseDE(text, fileName){
 
   // 3 y 4. Código QR: dominio oficial y parámetros iguales al XML
   let qrUrl = null; try { qrUrl = new URL(d.qr); } catch(e) {}
-  const qrHostOk = !!qrUrl && qrUrl.protocol === "https:" && qrUrl.hostname === QR_HOST;
-  add("El QR apunta a e-Kuatia (SET)", qrHostOk, qrUrl ? `Apunta a ${qrUrl.host}` : "El XML no trae URL de QR válida.");
+  const qrHostOk = !!qrUrl && qrUrl.protocol === "https:" && qrUrl.hostname === QR_HOST && !qrUrl.port &&
+                   !qrUrl.username && !qrUrl.password && /^\/consultas(-test)?\//.test(qrUrl.pathname);
+  add("El QR apunta a e-Kuatia (SET)", qrHostOk, qrUrl ? `Apunta a ${qrUrl.origin}${qrUrl.pathname}` : "El XML no trae URL de QR válida.");
   d.qrOk = qrHostOk;
   if (qrUrl) {
     const g = k => qrUrl.searchParams.get(k) || "", badQr = [];
@@ -3016,7 +3044,7 @@ function parseDE(text, fileName){
 
   // 5. Suma de ítems = total de la operación
   const sumItems = items.reduce((a, i) => a + i.total, 0);
-  add("Suma de ítems = total de la operación", items.length && Math.abs(sumItems - d.tot.ope) < 1,
+  add("Suma de ítems = total de la operación", items.length && Math.abs(sumItems - d.tot.ope) < (cur === "PYG" ? 1 : 0.01 * Math.max(1, items.length)),
       `Ítems: ${fmt(sumItems, cur)} · Total: ${fmt(d.tot.ope, cur)}`);
 
   // 6. IVA de los ítems = IVA total
@@ -3131,40 +3159,65 @@ function render(){
       <ol><li>Descargá el XML desde e-Kuatia con el CDC.</li><li>Arrastralo a la izquierda (o usá «Elegir archivos…»).</li><li>Revisá los controles de integridad y presioná «Imprimir».</li></ol></div>` : "";
   $("sheets").innerHTML = welcome +
     errors.map(e => `<div class="err-card"><b>${esc(e.file)}:</b> ${esc(e.msg)}</div>`).join("") +
-    docs.map(renderSheet).join("");
+    docs.map((d, i) => { try { return renderSheet(d, i); }
+      catch (e) { return `<div class="err-card"><b>${esc(d.fileName)}:</b> no se pudo armar la hoja (${esc(e.message)}).</div>`; } }).join("");
   $("count").textContent = docs.length === 1 ? "1 factura" : `${docs.length} facturas`;
   $("list").innerHTML = docs.length ? docs.map((d, i) => {
     const okN = d.checks.filter(k => k.ok).length;
     return `
-    <div class="item${d.allOk ? "" : " failed"}">
+    <div class="item${d.allOk ? "" : " failed"}" data-i="${i}" data-ok="${d.allOk ? 1 : 0}" data-key="${esc([d.em.fantasia, d.em.nombre, d.numero, d.cdc, d.fileName].join(" ").toLowerCase())}">
       <div class="em" title="${esc(d.em.nombre)}">${esc(d.em.fantasia || d.em.nombre)}</div>
       <div class="meta">${esc(d.numero)} · ${fmtDate(d.fecha)}<br>${esc(d.moneda)} ${fmt(d.tot.gral, d.moneda)}<br>
-        ${d.allOk ? `<span class="chip ok">Controles OK (${okN}/${d.checks.length})</span>` : `<span class="chip bad">Falló ${d.checks.length - okN} de ${d.checks.length} controles</span>`}</div>
+        ${d.allOk ? `<span class="chip ok">Coherencia OK (${okN}/${d.checks.length})</span>` : `<span class="chip bad">Falló ${d.checks.length - okN} de ${d.checks.length} controles</span>`}</div>
       <div class="acts">
-        <button class="btn small" type="button" data-pdf="${i}">Descargar PDF</button>
-        <button class="btn small" type="button" data-print="${i}">Imprimir</button>
-        <button class="btn small" type="button" data-show="${i}">Ver</button>
-        <button class="btn small" type="button" data-del="${i}">Quitar</button>
+        <button class="btn small" type="button" data-pdf="${i}"${busy ? " disabled" : ""}>Descargar PDF</button>
+        <button class="btn small" type="button" data-print="${i}"${busy ? " disabled" : ""}>Imprimir</button>
+        <button class="btn small" type="button" data-show="${i}"${busy ? " disabled" : ""}>Ver</button>
+        <button class="btn small" type="button" data-del="${i}"${busy ? " disabled" : ""}>Quitar</button>
       </div>
       <details${d.allOk ? "" : " open"}><summary>Controles de integridad</summary><ul>
         ${d.checks.map(k => `<li><span class="${k.ok ? "y" : "n"}">${k.ok ? "✓" : "✗"}</span><span>${esc(k.name)}${k.detail ? `<small>${esc(k.detail)}</small>` : ""}</span></li>`).join("")}
-      </ul></details>
+      </ul><p class="sig">Firma digital no verificada: confirme el CDC en e-Kuatia.</p></details>
     </div>`; }).join("") : `<div class="empty">Todavía no cargaste ningún XML.</div>`;
-  $("btnPrintAll").disabled = $("btnPdfAll").disabled = !docs.length || busy; $("btnClear").disabled = !docs.length && !errors.length;
+  $("tools").hidden = docs.length < 2;
+  const bad = docs.filter(d => !d.allOk).length;
+  $("okcount").textContent = bad ? `${bad} con fallas` : "";
+  applyFilter();
+  $("btnPrintAll").disabled = $("btnPdfAll").disabled = !docs.length || busy; $("btnClear").disabled = busy || (!docs.length && !errors.length);
+  $("fileIn").disabled = busy;
+}
+
+/* ---------- búsqueda en la lista ---------- */
+function applyFilter(){
+  const words = $("filter").value.trim().toLowerCase().split(/\s+/).filter(Boolean), only = $("only").value;
+  let shown = 0;
+  document.querySelectorAll("#list .item").forEach(el => {
+    const vis = words.every(w => el.dataset.key.includes(w)) && (!only || (only === "ok") === (el.dataset.ok === "1"));
+    el.hidden = !vis; if (vis) shown++;
+  });
+  const n = docs.length, lbl = n === 1 ? "1 factura" : `${n} facturas`;
+  $("count").textContent = shown < n ? `${shown} de ${lbl}` : lbl;
 }
 
 function addFiles(list){
+  if (busy) { $("status").textContent = "Esperá a que termine la generación de PDF."; return; }
   errors = [];
-  const readers = Array.from(list).map(file => {
+  let files = Array.from(list);
+  if (files.length > MAX_FILES) {
+    errors.push({file: `${files.length} archivos`, msg: `Se cargan como máximo ${MAX_FILES} por vez; se tomaron los primeros ${MAX_FILES}.`});
+    files = files.slice(0, MAX_FILES);
+  }
+  const readers = files.map(file => {
     if (file.size > MAX_BYTES) { errors.push({file: file.name, msg: "Supera el límite de 2 MB; un XML de factura pesa normalmente menos de 50 KB."}); return Promise.resolve(); }
     return file.text().then(txt => {
       try {
         const d = parseDE(txt, file.name);
-        if (!docs.some(x => x.cdc === d.cdc)) docs.push(d);
+        if (!d.cdc || !docs.some(x => x.cdc === d.cdc)) docs.push(d);
       } catch (e) { errors.push({file: file.name, msg: e.message}); }
     }, () => errors.push({file: file.name, msg: "No se pudo leer el archivo."}));
   });
-  Promise.all(readers).then(() => { docs.sort((a, b) => a.fecha.localeCompare(b.fecha)); render(); });
+  Promise.all(readers).then(() => { docs.sort((a, b) => a.fecha.localeCompare(b.fecha)); render(); })
+    .catch(e => { $("status").textContent = `Error inesperado: ${e.message}`; });
 }
 
 function markOnly(i){
@@ -3175,13 +3228,12 @@ function printDocs(i){
   const orig = document.title;
   markOnly(i);
   document.title = i != null ? docs[i].cdc : `KuDE_${docs.length}_facturas`;
-  window.print();
+  try { window.print(); } finally { markOnly(null); }
   document.title = orig;
 }
-window.__printOnly = markOnly;
 
 /* ---------- PDF individuales (se generan en esta computadora, sin internet) ---------- */
-const safeName = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "Proveedor";
+const safeName = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w.-]+/g, "_").replace(/^[_.]+|[_.]+$/g, "").slice(0, 60) || "Proveedor";
 const pdfName = d => `${safeName(d.em.fantasia || d.em.nombre)}_${safeName(d.numero)}.pdf`;
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
@@ -3227,17 +3279,18 @@ function saveBlob(blob, name){
 async function downloadPdfs(indexes){
   if (busy || !indexes.length) return;
   if (typeof html2canvas !== "function" || !window.jspdf) { $("status").textContent = "No se pudo cargar el generador de PDF."; return; }
+  const queue = indexes.map(i => docs[i]).filter(Boolean);
   busy = true; render();
   const used = new Set(); let ok = 0;
   try {
-    for (const [n, i] of indexes.entries()) {
-      $("status").textContent = `Generando PDF ${n + 1} de ${indexes.length}…`;
-      const sheet = document.querySelector(`.sheet[data-idx="${i}"]`);
-      let name = pdfName(docs[i]);
+    for (const [n, d] of queue.entries()) {
+      $("status").textContent = `Generando PDF ${n + 1} de ${queue.length}…`;
+      const sheet = document.querySelector(`.sheet[data-idx="${docs.indexOf(d)}"]`);
+      if (!sheet) throw new Error("la hoja ya no está en pantalla");
+      let name = pdfName(d);
       while (used.has(name)) name = name.replace(/(_\d+)?\.pdf$/, m => `_${(parseInt(m.slice(1)) || 1) + 1}.pdf`);
       used.add(name);
       const blob = await sheetToPdf(sheet);
-      window.__lastPdf = { name, blob };                  // usado por las pruebas automáticas
       saveBlob(blob, name); ok++;
       await wait(400);                                    // pausa para que el navegador acepte varias descargas
     }
@@ -3246,21 +3299,26 @@ async function downloadPdfs(indexes){
     $("status").textContent = `Error al generar el PDF: ${e.message}`;
   } finally { busy = false; render(); }
 }
-window.__sheetToPdf = i => sheetToPdf(document.querySelector(`.sheet[data-idx="${i}"]`));            // usado por el script de generación de PDF de prueba
 
 $("fileIn").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
 const drop = $("drop");
 ["dragenter","dragover"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
 document.addEventListener("dragleave", e => { if (!e.relatedTarget) drop.classList.remove("over"); });
 document.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+$("filter").addEventListener("input", applyFilter);
+$("only").addEventListener("change", applyFilter);
 $("btnPrintAll").addEventListener("click", () => printDocs(null));
 $("btnPdfAll").addEventListener("click", () => downloadPdfs(docs.map((_, i) => i)));
-$("btnClear").addEventListener("click", () => { docs = []; errors = []; render(); });
+$("btnClear").addEventListener("click", () => { if (busy) return; docs = []; errors = []; $("status").textContent = ""; render(); });
 $("list").addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
+  const b = e.target.closest("button"); if (!b || busy) return;
   if (b.dataset.pdf) downloadPdfs([+b.dataset.pdf]);
   if (b.dataset.print) printDocs(+b.dataset.print);
-  if (b.dataset.show) document.querySelector(`.sheet[data-idx="${+b.dataset.show}"]`)?.scrollIntoView({behavior: "smooth", block: "start"});
+  if (b.dataset.show) {
+    document.querySelectorAll("#list .item.sel").forEach(el => el.classList.remove("sel"));
+    b.closest(".item").classList.add("sel");
+    document.querySelector(`.sheet[data-idx="${+b.dataset.show}"]`)?.scrollIntoView({behavior: "smooth", block: "start"});
+  }
   if (b.dataset.del) { docs.splice(+b.dataset.del, 1); render(); }
 });
 render();
