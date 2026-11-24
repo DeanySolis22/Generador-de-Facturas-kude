@@ -5,6 +5,9 @@ firma digital .p12 de la empresa. Los XML quedan en una carpeta lista para
 arrastrar al Generador de KuDE.
 
 Uso:
+    Doble clic en descargar_xml.exe (o descargar_xml.py): busca lista_cdc.txt y la
+    firma .p12/.pfx en su misma carpeta y guarda los XML en xml_descargados.
+
     python descargar_xml.py lista_cdc.txt --p12 firma.p12
     python descargar_xml.py lista_cdc.txt --p12 firma.p12 --salida xml_descargados
 
@@ -152,7 +155,10 @@ def main():
     ap.add_argument("--ambiente", choices=URLS, default="produccion")
     ap.add_argument("--url", help=argparse.SUPPRESS)       # solo para pruebas
     ap.add_argument("--cafile", help=argparse.SUPPRESS)    # solo para pruebas
-    args = ap.parse_args()
+    if len(sys.argv) == 1:      # doble clic: se buscan los archivos junto al programa
+        args = ap.parse_args(argumentos_automaticos())
+    else:
+        args = ap.parse_args()
 
     cdcs, errores = leer_lista(args.lista)
     for n, linea, motivo in errores:
@@ -207,5 +213,41 @@ def main():
         print(f"\n{bajados} de {len(pendientes)} descargados en «{salida}». Detalle en {resumen.name}.")
 
 
+def carpeta_del_programa():
+    if getattr(sys, "frozen", False):          # descargar_xml.exe
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+def argumentos_automaticos():
+    base = carpeta_del_programa()
+    print(f"Carpeta: {base}\n")
+    lista = base / "lista_cdc.txt"
+    if not lista.exists():
+        sys.exit("Falta el archivo lista_cdc.txt en esta carpeta.\n"
+                 "Crealo con el Bloc de notas y pegá un CDC por línea.")
+    firmas = sorted([*base.glob("*.p12"), *base.glob("*.pfx")])
+    if not firmas:
+        sys.exit("Falta la firma digital (.p12 o .pfx) en esta carpeta.")
+    if len(firmas) > 1:
+        sys.exit("Hay más de una firma (.p12/.pfx) en esta carpeta; dejá solo la que vas a usar.\n"
+                 + "\n".join(f"  - {f.name}" for f in firmas))
+    print(f"Lista: {lista.name}\nFirma: {firmas[0].name}\n")
+    return [str(lista), "--p12", str(firmas[0]), "--salida", str(base / "xml_descargados")]
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:                       # desde la consola o descargar.bat
+        main()
+    else:                                       # doble clic: la ventana no se cierra sola
+        try:
+            main()
+        except KeyboardInterrupt:
+            print("\nCancelado.")
+        except SystemExit as e:
+            if isinstance(e.code, str):
+                print(f"\n{e.code}")
+        except Exception as e:                  # error inesperado: que se vea antes de cerrar
+            print(f"\nError inesperado: {e!r}")
+        finally:
+            input("\nPresioná Enter para cerrar…")
