@@ -15,6 +15,10 @@ Genera la representación impresa (KuDE) de facturas electrónicas de Paraguay a
 2. Arrastrá los XML o usá «Elegir archivos…».
 3. Revisá los controles de integridad y presioná «Imprimir» o «Descargar PDF».
 
+## Descargar los XML desde SIFEN
+
+En [`herramientas/`](herramientas/LEEME.md) hay un programa que, con la firma digital `.p12` de la empresa, descarga de SIFEN el XML de cada CDC de una lista. Instrucciones en [`herramientas/LEEME.md`](herramientas/LEEME.md).
+
 ## Versiones
 
 | Versión | Archivo | Cambios |

@@ -1,0 +1,6 @@
+# Datos que no deben subirse al repositorio
+*.p12
+*.pfx
+lista_cdc*.txt
+xml_descargados/
+__pycache__/
