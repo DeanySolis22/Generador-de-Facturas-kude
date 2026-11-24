@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-EU71pPDEW3BkYs97sxebjFG2RV4skStt8znDqfvn2jM='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-Hu3wcf302tSlXAlat2XDy2r+7TY1w+fRPpJoJpLCYkA='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Generador de KuDE</title>
@@ -148,7 +148,7 @@ table.k-items{width:100%;border-collapse:collapse;font-variant-numeric:tabular-n
 </head>
 <body>
 <header class="top">
-  <div class="brand"><b>Generador de KuDE <span class="ver">v2.3</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
+  <div class="brand"><b>Generador de KuDE <span class="ver">v2.4</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
   <span class="status" id="status" role="status" aria-live="polite"></span>
   <button class="btn" id="btnClear" type="button">Quitar todas</button>
   <button class="btn" id="btnPrintAll" type="button">Imprimir todas</button>
@@ -2886,9 +2886,8 @@ const num = s => { const v = parseFloat(s); return isFinite(v) ? v : 0; };
 const ESC = {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ESC[c]);
 
-function fmt(v, cur, force){
-  const intLike = Math.abs(v - Math.round(v)) < 1e-9;
-  const dec = force != null ? force : (cur === "PYG" && intLike ? 0 : 2);
+function fmt(v, cur, force){            // guaraníes sin decimales; otras monedas con 2
+  const dec = force != null ? force : (cur === "PYG" ? 0 : 2);
   return v.toLocaleString("es-PY", {minimumFractionDigits:dec, maximumFractionDigits:dec});
 }
 const fmtQty = s => num(s).toLocaleString("es-PY", {minimumFractionDigits:0, maximumFractionDigits:4});
@@ -2940,6 +2939,7 @@ function words(n){
 }
 function inWords(v, cur, curName){
   if (!Number.isFinite(v) || Math.abs(v) >= MAX_WORDS) return "(monto fuera de rango)";
+  if (cur === "PYG") v = Math.round(v);                        // en guaraníes, igual que el monto impreso
   const neg = v < 0, c100 = Math.round(Math.abs(v) * 100);    // se redondea antes de separar: 0,999 → 1,00
   const ent = Math.floor(c100 / 100), cents = c100 % 100;
   const cc = ` CON ${String(cents).padStart(2,"0")}/100`, w = (neg ? "MENOS " : "") + words(ent);
@@ -2961,7 +2961,7 @@ function parseDE(text, fileName){
 
   const items = qa(de, "gCamItem").map(it => {
     const iva = q(it, "gCamIVA");
-    const total = num(t(it, "dTotOpeItem")) || num(t(it, "dTotBruOpeItem"));
+    const total = num(t(it, q(it, "dTotOpeItem") ? "dTotOpeItem" : "dTotBruOpeItem"));   // un ítem bonificado al 100 % tiene total neto 0
     const afec = t(iva, "iAfecIVA"), tasa = num(t(iva, "dTasaIVA")), prop = num(t(iva, "dPropIVA") || "100");
     let exe = 0, g5 = 0, g10 = 0;
     if (afec === "2" || afec === "3" || tasa === 0) exe = total;
@@ -3010,7 +3010,7 @@ function parseDE(text, fileName){
     items,
     tot: {
       exe: num(t(tot,"dSubExe")) + num(t(tot,"dSubExo")), s5: num(t(tot,"dSub5")), s10: num(t(tot,"dSub10")),
-      ope: num(t(tot,"dTotOpe")), desc: num(t(tot,"dTotDesc")) + num(t(tot,"dDescTotal")),
+      ope: num(t(tot,"dTotOpe")), desc: q(tot,"dDescTotal") ? num(t(tot,"dDescTotal")) : num(t(tot,"dTotDesc")) + num(t(tot,"dTotDescGlotem")),   // dDescTotal ya incluye los descuentos por ítem
       anticipo: num(t(tot,"dAnticipo")), redon: num(t(tot,"dRedon")), gral: num(t(tot,"dTotGralOpe")),
       iva5: num(t(tot,"dIVA5")), iva10: num(t(tot,"dIVA10")), iva: num(t(tot,"dTotIVA")), gs: num(t(tot,"dTotalGs"))
     }
@@ -3019,6 +3019,8 @@ function parseDE(text, fileName){
   /* ---------- controles de integridad ---------- */
   const checks = [], add = (name, ok, detail) => checks.push({name, ok: !!ok, detail: ok ? "" : detail});
   const tolTot = cur === "PYG" ? 0.5 : 0.005;
+  // Al sumar ítems, cada uno puede venir redondeado por separado: hasta 1 Gs. (o 0,01 en otras monedas) por ítem
+  const tolSum = (cur === "PYG" ? 1 : 0.01) * Math.max(1, items.length), dif = v => fmt(Math.abs(v), cur, cur === "PYG" ? 0 : 2);
 
   // 1. Dígito verificador del CDC
   add("Dígito verificador del CDC", /^\d{44}$/.test(cdc) && dvMod11(cdc.slice(0, 43)) === +cdc[43],
@@ -3058,13 +3060,13 @@ function parseDE(text, fileName){
 
   // 5. Suma de ítems = total de la operación
   const sumItems = items.reduce((a, i) => a + i.total, 0);
-  add("Suma de ítems = total de la operación", items.length && Math.abs(sumItems - d.tot.ope) < (cur === "PYG" ? 1 : 0.01 * Math.max(1, items.length)),
-      `Ítems: ${fmt(sumItems, cur)} · Total: ${fmt(d.tot.ope, cur)}`);
+  add("Suma de ítems = total de la operación", items.length && Math.abs(sumItems - d.tot.ope) <= tolSum,
+      `Ítems: ${fmt(sumItems, cur)} · Total: ${fmt(d.tot.ope, cur)} · Diferencia: ${dif(sumItems - d.tot.ope)}`);
 
   // 6. IVA de los ítems = IVA total
   const sumIva = items.reduce((a, i) => a + i.ivaItem, 0);
-  add("IVA de los ítems = IVA total", Math.abs(sumIva - d.tot.iva) < (cur === "PYG" ? 1 : 0.01 * Math.max(1, items.length)),
-      `Ítems: ${fmt(sumIva, cur, 2)} · Total: ${fmt(d.tot.iva, cur, 2)}`);
+  add("IVA de los ítems = IVA total", Math.abs(sumIva - d.tot.iva) <= tolSum,
+      `Ítems: ${fmt(sumIva, cur)} · Total: ${fmt(d.tot.iva, cur)} · Diferencia: ${dif(sumIva - d.tot.iva)}`);
 
   d.checks = checks;
   d.allOk = checks.every(c => c.ok);

@@ -19,11 +19,19 @@ Genera la representación impresa (KuDE) de facturas electrónicas de Paraguay a
 
 | Versión | Archivo | Cambios |
 |---|---|---|
+| 2.4 | [`versiones/Generador_KuDE_v2.4.html`](versiones/Generador_KuDE_v2.4.html) | Ítems bonificados, redondeo por ítem, descuento total y guaraníes sin decimales. |
 | 2.3 | [`versiones/Generador_KuDE_v2.3.html`](versiones/Generador_KuDE_v2.3.html) | En notas de crédito y débito, el documento asociado muestra el número de factura en lugar del CDC. |
 | 2.2 | [`versiones/Generador_KuDE_v2.2.html`](versiones/Generador_KuDE_v2.2.html) | Correcciones de seguridad y lista con scroll, buscador y filtro (ver abajo). |
 | 2.1 | [`versiones/Generador_KuDE_v2.1.html`](versiones/Generador_KuDE_v2.1.html) | Versión inicial publicada en este repositorio. |
 
 Cada versión está en su propio commit del historial.
+
+### v2.4
+
+- **Ítems bonificados:** un ítem con descuento del 100 % (total neto 0) ya no toma su total bruto, que hacía fallar el control «Suma de ítems = total de la operación».
+- **Redondeo:** los controles de suma de ítems e IVA admiten hasta 1 Gs. de diferencia por ítem (0,01 en otras monedas), porque cada ítem puede venir redondeado por separado. La diferencia se muestra en el detalle del control.
+- **Descuento total:** ya no se suma dos veces (`dDescTotal` ya incluye los descuentos por ítem).
+- **Guaraníes sin decimales:** los montos en guaraníes se imprimen redondeados y sin coma; las demás monedas siguen con 2 decimales.
 
 ### v2.3
 
