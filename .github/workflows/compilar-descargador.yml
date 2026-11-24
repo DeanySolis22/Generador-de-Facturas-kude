@@ -1,0 +1,59 @@
+# Compila herramientas/descargar_xml.py como un .exe portátil para Windows.
+# Se ejecuta en una máquina limpia de GitHub a partir del código del repositorio,
+# así el ejecutable siempre corresponde al código público.
+name: Compilar descargador (.exe)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - herramientas/descargar_xml.py
+      - herramientas/requirements-compilar.txt
+      - .github/workflows/compilar-descargador.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias (verificadas por hash)
+        run: python -m pip install --require-hashes --no-deps -r herramientas/requirements-compilar.txt
+
+      - name: Compilar
+        run: python -m PyInstaller --onefile --console --clean --name descargar_xml herramientas/descargar_xml.py
+
+      - name: Probar el ejecutable
+        shell: pwsh
+        run: |
+          "'05800062515001007040731922026102011190967160`n123" | Set-Content lista.txt
+          ./dist/descargar_xml.exe --help
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Calcular SHA-256
+        shell: pwsh
+        run: |
+          $h = (Get-FileHash dist/descargar_xml.exe -Algorithm SHA256).Hash
+          "$h  descargar_xml.exe" | Set-Content -Encoding ascii dist/SHA256.txt
+          "SHA-256: $h" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Preparar paquete portátil
+        shell: pwsh
+        run: |
+          Copy-Item herramientas/descargar.bat, herramientas/LEEME.md dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: descargador-portatil
+          path: dist/
+          retention-days: 90
