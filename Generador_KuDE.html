@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-iBX0Vf6to7mVfcPDzYfFHMQhgntr4+6FscDW/eYnRtg='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-EU71pPDEW3BkYs97sxebjFG2RV4skStt8znDqfvn2jM='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Generador de KuDE</title>
@@ -148,7 +148,7 @@ table.k-items{width:100%;border-collapse:collapse;font-variant-numeric:tabular-n
 </head>
 <body>
 <header class="top">
-  <div class="brand"><b>Generador de KuDE <span class="ver">v2.2</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
+  <div class="brand"><b>Generador de KuDE <span class="ver">v2.3</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
   <span class="status" id="status" role="status" aria-live="polite"></span>
   <button class="btn" id="btnClear" type="button">Quitar todas</button>
   <button class="btn" id="btnPrintAll" type="button">Imprimir todas</button>
@@ -2908,6 +2908,15 @@ function dvMod11(digits){
   return r > 1 ? 11 - r : 0;
 }
 
+/* Número de documento (est-pexp-num) a partir de un CDC válido; si el CDC no es válido devuelve null */
+const TIPO_DE = {"01":"Factura electrónica","04":"Autofactura electrónica","05":"Nota de crédito electrónica","06":"Nota de débito electrónica","07":"Nota de remisión electrónica"};
+function nroDesdeCdc(cdc){
+  const c = String(cdc || "").replace(/\D/g, "");
+  if (c.length !== 44 || dvMod11(c.slice(0, 43)) !== +c[43]) return null;
+  const nro = `${c.slice(11, 14)}-${c.slice(14, 17)}-${c.slice(17, 24)}`, tipo = TIPO_DE[c.slice(0, 2)];
+  return tipo ? `${tipo} N° ${nro}` : nro;
+}
+
 /* ---------- monto en letras ---------- */
 const U=["","UNO","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE","DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISÉIS","DIECISIETE","DIECIOCHO","DIECINUEVE","VEINTE","VEINTIUNO","VEINTIDÓS","VEINTITRÉS","VEINTICUATRO","VEINTICINCO","VEINTISÉIS","VEINTISIETE","VEINTIOCHO","VEINTINUEVE"];
 const D=["","","","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
@@ -2992,7 +3001,12 @@ function parseDE(text, fileName){
     cond: t(cond,"dDCondOpe"), plazo: t(cond,"dPlazoCre"),
     cuotas: qa(cond, "gCuotas").map(c => ({ monto: num(t(c,"dMonCuota")), venc: t(c,"dVencCuo") })),
     pagos: qa(cond, "gPaConEIni").map(p => `${t(p,"dDesTiPag")} ${fmt(num(t(p,"dMonTiPag")), t(p,"cMoneTiPag") || cur)}`),
-    assoc: qa(de, "gCamDEAsoc").map(a => t(a,"dCdCDERef") || [t(a,"dEstDocAso"),t(a,"dPExpDocAso"),t(a,"dNumDocAso")].filter(Boolean).join("-")).filter(Boolean),
+    // En notas de crédito y débito se muestra el número de la factura asociada en lugar de su CDC
+    assoc: qa(de, "gCamDEAsoc").map(a => {
+      const ref = t(a,"dCdCDERef");
+      if (ref) return (["5","6"].includes(t(tim,"iTiDE")) && nroDesdeCdc(ref)) || ref;
+      return [t(a,"dEstDocAso"),t(a,"dPExpDocAso"),t(a,"dNumDocAso")].filter(Boolean).join("-");
+    }).filter(Boolean),
     items,
     tot: {
       exe: num(t(tot,"dSubExe")) + num(t(tot,"dSubExo")), s5: num(t(tot,"dSub5")), s10: num(t(tot,"dSub10")),

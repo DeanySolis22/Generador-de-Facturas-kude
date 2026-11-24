@@ -19,10 +19,17 @@ Genera la representación impresa (KuDE) de facturas electrónicas de Paraguay a
 
 | Versión | Archivo | Cambios |
 |---|---|---|
+| 2.3 | [`versiones/Generador_KuDE_v2.3.html`](versiones/Generador_KuDE_v2.3.html) | En notas de crédito y débito, el documento asociado muestra el número de factura en lugar del CDC. |
 | 2.2 | [`versiones/Generador_KuDE_v2.2.html`](versiones/Generador_KuDE_v2.2.html) | Correcciones de seguridad y lista con scroll, buscador y filtro (ver abajo). |
 | 2.1 | [`versiones/Generador_KuDE_v2.1.html`](versiones/Generador_KuDE_v2.1.html) | Versión inicial publicada en este repositorio. |
 
 Cada versión está en su propio commit del historial.
+
+### v2.3
+
+- En **notas de crédito y de débito**, el campo «Documento asociado» muestra el tipo y número del documento (por ejemplo, `Factura electrónica N° 001-002-0000777`) obtenidos del CDC asociado, en lugar del CDC completo.
+- Antes de convertirlo se verifica el dígito verificador del CDC; si no es válido, se muestra el CDC tal cual para no imprimir un número equivocado.
+- En las facturas y en los documentos asociados impresos (no electrónicos) no cambia nada.
 
 ### v2.2
 
