@@ -23,12 +23,18 @@ En [`herramientas/`](herramientas/LEEME.md) hay un programa que, con la firma di
 
 | Versión | Archivo | Cambios |
 |---|---|---|
+| 2.5 | [`versiones/Generador_KuDE_v2.5.html`](versiones/Generador_KuDE_v2.5.html) | Muestra el código de cliente asignado por el emisor y permite buscar por él. |
 | 2.4 | [`versiones/Generador_KuDE_v2.4.html`](versiones/Generador_KuDE_v2.4.html) | Ítems bonificados, redondeo por ítem, descuento total y guaraníes sin decimales. |
 | 2.3 | [`versiones/Generador_KuDE_v2.3.html`](versiones/Generador_KuDE_v2.3.html) | En notas de crédito y débito, el documento asociado muestra el número de factura en lugar del CDC. |
 | 2.2 | [`versiones/Generador_KuDE_v2.2.html`](versiones/Generador_KuDE_v2.2.html) | Correcciones de seguridad y lista con scroll, buscador y filtro (ver abajo). |
 | 2.1 | [`versiones/Generador_KuDE_v2.1.html`](versiones/Generador_KuDE_v2.1.html) | Versión inicial publicada en este repositorio. |
 
 Cada versión está en su propio commit del historial.
+
+### v2.5
+
+- Muestra el **código de cliente** que el emisor asigna al receptor (`dCodCliente`), en la hoja y en la lista. Algunos proveedores lo usan para distinguir locales o sucursales del mismo cliente (por ejemplo `29638-1`, `29638-2`).
+- El buscador también encuentra facturas por ese código.
 
 ### v2.4
 

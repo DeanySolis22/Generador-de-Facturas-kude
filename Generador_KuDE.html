@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-Hu3wcf302tSlXAlat2XDy2r+7TY1w+fRPpJoJpLCYkA='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eeyG+ChWAFsciHkFz8z8++w4Icphx/1alS+qX3ePeRw=' 'sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs=' 'sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=' 'sha256-9jfdG2ufaqM58Wy7OaRdZ14juJ/0O3CJtm1L/OKYL6k='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Generador de KuDE</title>
@@ -148,7 +148,7 @@ table.k-items{width:100%;border-collapse:collapse;font-variant-numeric:tabular-n
 </head>
 <body>
 <header class="top">
-  <div class="brand"><b>Generador de KuDE <span class="ver">v2.4</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
+  <div class="brand"><b>Generador de KuDE <span class="ver">v2.5</span></b><span>Representación impresa de facturas electrónicas a partir del XML de e-Kuatia · funciona sin conexión</span></div>
   <span class="status" id="status" role="status" aria-live="polite"></span>
   <button class="btn" id="btnClear" type="button">Quitar todas</button>
   <button class="btn" id="btnPrintAll" type="button">Imprimir todas</button>
@@ -166,7 +166,7 @@ table.k-items{width:100%;border-collapse:collapse;font-variant-numeric:tabular-n
     <div class="list">
       <div class="list-head"><span id="count">0 facturas</span><span id="okcount"></span></div>
       <div class="list-tools" id="tools" hidden>
-        <input type="search" id="filter" placeholder="Buscar proveedor, número o CDC" aria-label="Buscar facturas" autocomplete="off" maxlength="60">
+        <input type="search" id="filter" placeholder="Buscar proveedor, número, CDC o código" aria-label="Buscar facturas" autocomplete="off" maxlength="60">
         <select id="only" aria-label="Mostrar"><option value="">Todas</option><option value="bad">Con fallas</option><option value="ok">Sin fallas</option></select>
       </div>
       <div id="list"><div class="empty">Todavía no cargaste ningún XML.</div></div>
@@ -2996,7 +2996,8 @@ function parseDE(text, fileName){
       docLbl: recRuc ? "RUC" : (t(rec,"dDTipIDRec") || "Documento"),
       dir: [t(rec,"dDirRec"), t(rec,"dNumCasRec") && t(rec,"dNumCasRec") !== "0" ? "N° " + t(rec,"dNumCasRec") : ""].filter(Boolean).join(" "),
       ciudad: [t(rec,"dDesCiuRec"), t(rec,"dDesDepRec")].filter(Boolean).join(" - "),
-      tel: t(rec,"dTelRec") || t(rec,"dCelRec"), email: t(rec,"dEmailRec")
+      tel: t(rec,"dTelRec") || t(rec,"dCelRec"), email: t(rec,"dEmailRec"),
+      codCli: t(rec,"dCodCliente")         // código que el emisor asigna al cliente; p. ej. identifica el local
     },
     cond: t(cond,"dDCondOpe"), plazo: t(cond,"dPlazoCre"),
     cuotas: qa(cond, "gCuotas").map(c => ({ monto: num(t(c,"dMonCuota")), venc: t(c,"dVencCuo") })),
@@ -3126,6 +3127,7 @@ function renderSheet(d, idx){
       <div><span class="lbl">Dirección:</span> ${esc([d.rec.dir, d.rec.ciudad].filter(Boolean).join(", "))}</div>
       <div><span class="lbl">Tipo de transacción:</span> ${esc(d.tipoTra)}</div>
       <div>${contact}</div>
+      ${d.rec.codCli ? `<div><span class="lbl">Código de cliente:</span> ${esc(d.rec.codCli)}</div>` : ""}
       ${d.pagos.length ? `<div class="full"><span class="lbl">Forma de pago:</span> ${esc(d.pagos.join("; "))}</div>` : ""}
       ${d.cuotas.length ? `<div class="full"><span class="lbl">Cuotas:</span> ${d.cuotas.map((k,i) => `${i+1}) ${fmt(k.monto, c)} vence ${fmtDate(k.venc)}`).join("; ")}</div>` : ""}
       ${d.assoc.length ? `<div class="full"><span class="lbl">Documento asociado:</span> ${esc(d.assoc.join(", "))}</div>` : ""}
@@ -3181,9 +3183,9 @@ function render(){
   $("list").innerHTML = docs.length ? docs.map((d, i) => {
     const okN = d.checks.filter(k => k.ok).length;
     return `
-    <div class="item${d.allOk ? "" : " failed"}" data-i="${i}" data-ok="${d.allOk ? 1 : 0}" data-key="${esc([d.em.fantasia, d.em.nombre, d.numero, d.cdc, d.fileName].join(" ").toLowerCase())}">
+    <div class="item${d.allOk ? "" : " failed"}" data-i="${i}" data-ok="${d.allOk ? 1 : 0}" data-key="${esc([d.em.fantasia, d.em.nombre, d.numero, d.cdc, d.fileName, d.rec.codCli].join(" ").toLowerCase())}">
       <div class="em" title="${esc(d.em.nombre)}">${esc(d.em.fantasia || d.em.nombre)}</div>
-      <div class="meta">${esc(d.numero)} · ${fmtDate(d.fecha)}<br>${esc(d.moneda)} ${fmt(d.tot.gral, d.moneda)}<br>
+      <div class="meta">${esc(d.numero)} · ${fmtDate(d.fecha)}${d.rec.codCli ? ` · Cliente ${esc(d.rec.codCli)}` : ""}<br>${esc(d.moneda)} ${fmt(d.tot.gral, d.moneda)}<br>
         ${d.allOk ? `<span class="chip ok">Coherencia OK (${okN}/${d.checks.length})</span>` : `<span class="chip bad">Falló ${d.checks.length - okN} de ${d.checks.length} controles</span>`}</div>
       <div class="acts">
         <button class="btn small" type="button" data-pdf="${i}"${busy ? " disabled" : ""}>Descargar PDF</button>
